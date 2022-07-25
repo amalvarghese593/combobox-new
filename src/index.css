@@ -44,3 +44,6 @@ code {
   color: #06c;
   cursor: pointer;
 }
+.options-container {
+  border: 1px solid red !important;
+}

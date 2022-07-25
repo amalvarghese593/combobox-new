@@ -1,0 +1,195 @@
+#root,
+.main_layoutGrid {
+  min-height: 100vh;
+}
+.relative {
+  position: relative;
+}
+.absolute {
+  position: absolute;
+}
+.top-0 {
+  top: 0;
+}
+.bottom-0 {
+  bottom: 0;
+}
+.left-0 {
+  left: 0;
+}
+.right-0 {
+  right: 0;
+}
+.put-y-0 {
+  top: 0;
+  bottom: 0;
+}
+.opactity-0\% {
+  opacity: 0;
+}
+.opactity-7\% {
+  opacity: 60%;
+}
+.cursor-default {
+  cursor: auto;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.select-none {
+  user-select: none;
+  -moz-user-select: none;
+}
+.w-full {
+  width: 100% !important;
+}
+.w-5 {
+  width: 1.25rem;
+}
+.h-5 {
+  height: 1.25rem;
+}
+.w-80 {
+  width: 20rem;
+}
+.max-h-60 {
+  max-height: 15rem;
+}
+.items-center {
+  align-items: center;
+}
+.justify-center {
+  justify-content: center;
+}
+.space-between {
+  justify-content: space-between;
+}
+.flex {
+  display: flex;
+}
+.right-0 {
+  right: 0px;
+}
+.inset-y-0 {
+  top: 0px;
+  bottom: 0px;
+}
+.text-gray-900 {
+  --tw-text-opacity: 1;
+  color: rgb(17 24 39 / var(--tw-text-opacity));
+}
+.text-gray-400 {
+  --tw-text-opacity: 1;
+  color: rgb(156 163 175 / var(--tw-text-opacity));
+}
+.radius\:8 {
+  border-radius: 8px;
+}
+.bg-secondary {
+  background-color: var(--secondary) !important;
+}
+.flex {
+  display: flex;
+}
+
+@media (min-width: 640px) {
+  .sm\:w-96 {
+    width: 24rem;
+  }
+  .sm\:text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+.hover\:outline:hover {
+  outline: 50px;
+  outline-style: dotted;
+  background-color: green;
+}
+.chip {
+  display: flex;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: #06c;
+  color: #fff;
+  align-items: center;
+}
+.chip span:hover svg {
+  /* background-color: #efefef; */
+  cursor: pointer;
+}
+.hover\:light:hover {
+  border-radius: 50%;
+  background-color: #efefef;
+}
+/**
+ * ==============================================
+ * Dot Flashing
+ * ==============================================
+ */
+.flashing-anim {
+  position: absolute;
+  right: 32px;
+  height: 100%;
+  width: 50px;
+  top: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dot-flashing {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #9880ff;
+  animation: dotFlashing 1s infinite linear alternate;
+  animation-delay: 0.5s;
+}
+
+.dot-flashing::before,
+.dot-flashing::after {
+  content: "";
+  display: inline-block;
+  position: absolute;
+  top: 0;
+}
+
+.dot-flashing::before {
+  left: -15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #9880ff;
+  animation: dotFlashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+
+.dot-flashing::after {
+  left: 15px;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #9880ff;
+  animation: dotFlashing 1s infinite alternate;
+  animation-delay: 1s;
+}
+
+@keyframes dotFlashing {
+  0% {
+    background-color: #9880ff;
+  }
+  50%,
+  100% {
+    background-color: #ebe6ff;
+  }
+}
+
+.selected-item {
+  color: #9880ff;
+}
