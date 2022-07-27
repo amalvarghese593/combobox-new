@@ -14,8 +14,37 @@ import VirualListOfMultiSelect from "./VirtualList";
 const lower = (str) =>
   typeof str === "string" ? str.toLowerCase().replace(/\s+/g, "") : "";
 const isStr = (str) => typeof str === "string";
+const separateStringByComma = (str, trueBlock, falseBlock) => {
+  if (str.includes(",")) {
+    str.split(",").forEach((item) => {
+      trueBlock(item.trim());
+    });
+  } else {
+    falseBlock(str.trim());
+  }
+};
+const useChangeDropdownPosition = (inputContainerRef, dropdownHeight = 200) => {
+  const [isReverse, setIsReverse] = useState(false);
+  useEffect(() => {
+    const scrollHandler = () => {
+      const distanceFromInputToBottom =
+        window.innerHeight -
+        inputContainerRef.current.getBoundingClientRect().bottom;
+      if (distanceFromInputToBottom < dropdownHeight) {
+        setIsReverse(true);
+      } else {
+        setIsReverse(false);
+      }
+    };
+    scrollHandler();
+    window.addEventListener("scroll", scrollHandler);
+    return () => window.removeEventListener("scroll", scrollHandler);
+  }, []);
+  return { isReverse };
+};
 
 export const VirtualAutoSuggestionSearch = ({
+  isVirtualizationEnabled,
   getLabel,
   getValue,
   transformResponse,
@@ -34,20 +63,11 @@ export const VirtualAutoSuggestionSearch = ({
   }, [value]);
 
   const addListItemRef = useRef();
-  // const optionRef = useRef();
   const [data, setData] = useState(options || []);
   const [isLoading, setIsLoading] = useState(false);
   const timeout = useRef();
-
-  // useEffect(() => {
-  //   // if (options > 0) {
-  //   // setData(options);
-  //   // }/
-  //   // setData(options);
-  // }, [options]);
-  // useEffect(() => {
-  //   // console.log(data);
-  // }, [data]);
+  const inputContainerRef = useRef();
+  const { isReverse } = useChangeDropdownPosition(inputContainerRef);
 
   const valueHandler = (e) => {
     clearTimeout(timeout.current);
@@ -120,29 +140,20 @@ export const VirtualAutoSuggestionSearch = ({
     [selectedItems, transformedValue]
   );
 
-  //handle logic of creation of new item
-  // const handleCreate = (e, el) => {
-  //   let inputSelectedValue = lower(transformedValue(el));
-  //   if (isSelected(el)) {
-  //     e.stopPropagation();
-  //     setSelectedItems((prev) =>
-  //       prev.filter((i) => lower(transformedValue(i)) !== inputSelectedValue)
-  //     );
-  //   }
-  // };
   const onSelection = (items) => {
+    console.log({ items });
     const itemsArray = items.map((item) => transformedValue(item));
-
+    console.log("onselection");
     //separating comma separated items into individual items
     const separatedItemsArray = [];
+
+    const trueBlockFn = (value) => {
+      value.length && separatedItemsArray.push(value.replace(/\.$/, ""));
+    };
+    const falseBlockFn = (el) => separatedItemsArray.push(el);
+
     itemsArray.forEach((el) => {
-      if (el.includes(",")) {
-        el.split(",").forEach((value) =>
-          separatedItemsArray.push(value.replace(/\.(\s)*$/, ""))
-        );
-      } else {
-        separatedItemsArray.push(el);
-      }
+      separateStringByComma(el, trueBlockFn, falseBlockFn);
     });
     //removing duplicates
     const uniqueItemsArray = [...new Set(separatedItemsArray)];
@@ -187,13 +198,13 @@ export const VirtualAutoSuggestionSearch = ({
     setSelectedItems((prev) => {
       let arr = [...prev];
       query.replace(/\s+|\?|\$/, "");
-      if (query.includes(",")) {
-        query.split(",").forEach((value) => {
-          if (!arr.includes(value)) arr.push(creatable(value));
-        });
-      } else {
+      const trueBlockFn = (value) => {
+        if (!arr.includes(value) && value.length) arr.push(creatable(value));
+      };
+      const falseBlockFn = (str) => {
         if (!arr.includes(query)) arr.push(creatable(query));
-      }
+      };
+      separateStringByComma(query, trueBlockFn, falseBlockFn);
       return arr;
     });
   };
@@ -215,15 +226,24 @@ export const VirtualAutoSuggestionSearch = ({
     }
   }, [selectedItems]);
 
+  const addNewItemHandler = (e) => {
+    if (filteredData.length === 0 && query.length >= 2 && e.key === "Enter") {
+      //eslint-disable no-unused-expressions
+      addListItemRef.current?.click();
+    }
+  };
   return (
-    <div className="combo-wrapper ">
+    <div className="combo-wrapper">
       <div className="w-full">
-        <Combobox value={selectedItems} onChange={onSelection} multiple>
+        <Combobox value={selectedItems} onChange={onSelection}>
           {({ open, activeIndex, activeOption }) => {
             return (
               <>
                 <div className="relative mt-1 pb-2 d-flex justify-content-start">
-                  <div className="relative w-100   cursor-default overflow-hidden rounded bg-white text-left border focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+                  <div
+                    ref={inputContainerRef}
+                    className="relative w-100 cursor-default overflow-hidden rounded bg-white text-left border focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm"
+                  >
                     <Combobox.Input
                       as={Fragment}
                       {...rest}
@@ -233,16 +253,7 @@ export const VirtualAutoSuggestionSearch = ({
                       onKeyDownCapture={(e) =>
                         captureOnKeyDown(e, activeOption)
                       }
-                      onKeyDown={(e) => {
-                        if (
-                          filteredData.length === 0 &&
-                          query.length >= 2 &&
-                          e.key === "Enter"
-                        ) {
-                          //eslint-disable-nextline no-unused-expressions
-                          // addListItemRef.current?.click();
-                        }
-                      }}
+                      onKeyDown={addNewItemHandler}
                       placeholder={inputPlaceholder}
                     >
                       {hasInputControl ? (
@@ -261,24 +272,15 @@ export const VirtualAutoSuggestionSearch = ({
                       {!isLoading &&
                       filteredData.length === 0 &&
                       query.length >= 2 ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 "
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth={2}
+                        <span
+                          style={{ fontSize: "25px" }}
                           onClick={() => {
                             addListItemRef.current.click();
                             setQuery("");
                           }}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                          />
-                        </svg>
+                          &#43;
+                        </span>
                       ) : (
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -298,7 +300,9 @@ export const VirtualAutoSuggestionSearch = ({
                   </div>
                   <Combobox.Options
                     style={{ height: "280px" }}
-                    className="absolute px-0 radius:8 flex  flex-column mt-5 max-h-60 w-100   overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                    className={`absolute ${
+                      isReverse ? "reverse-position" : ""
+                    } px-0 radius:8 flex  flex-column mt-5 max-h-60 w-100   overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm`}
                   >
                     {isLoading && (
                       <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
@@ -316,27 +320,32 @@ export const VirtualAutoSuggestionSearch = ({
                           Add {query}
                         </div>
                       )}
-                    {!isLoading && (
-                      // filteredData?.map((item, idx) => {
-                      //   return (
-                      //     <Combobox.Option
-                      //       className={({ active }) =>
-                      //         `relative cursor-pointer select-none py-2 pl-5 pr-4 ${
-                      //           active
-                      //             ? "bg-primary text-white"
-                      //             : "text-gray-900"
-                      //         }`
-                      //       }>
-                      //       {item}
-                      //     </Combobox.Option>
-                      //   );
-                      // })
-                      <VirualListOfMultiSelect
-                        items={filteredData}
-                        getValue={getValue}
-                        isSelected={isSelected}
-                      />
-                    )}
+                    {!isLoading &&
+                      (isVirtualizationEnabled ? (
+                        <VirualListOfMultiSelect
+                          items={filteredData}
+                          getValue={getValue}
+                          isSelected={isSelected}
+                        />
+                      ) : (
+                        filteredData?.map((item, idx) => {
+                          return (
+                            <Combobox.Option
+                              key={idx}
+                              className={({ active }) =>
+                                `relative cursor-pointer select-none py-2 pl-5 pr-4 ${
+                                  active
+                                    ? "bg-primary text-white"
+                                    : "text-gray-900"
+                                }`
+                              }
+                              value={getValue(item)}
+                            >
+                              {getValue(item)}
+                            </Combobox.Option>
+                          );
+                        })
+                      ))}
                   </Combobox.Options>
                 </div>
                 {!!selectedItems.length && (
@@ -350,20 +359,7 @@ export const VirtualAutoSuggestionSearch = ({
                             className="ml-1 hover:light"
                             onClick={() => removeItem(el)}
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5 opactity-7%"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
+                            &times;
                           </span>
                         </li>
                       </Fragment>

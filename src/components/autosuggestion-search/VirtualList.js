@@ -31,12 +31,13 @@ const VirualListOfMultiSelect = ({ items, getValue, isSelected }) => {
         {rowVirtualizer.getVirtualItems().map((virtualRow) => (
           <Combobox.Option
             key={virtualRow.index}
+            ref={virtualRow.measureElement}
             style={{
               position: "absolute",
               top: 0,
               left: 0,
               width: "100%",
-              height: `${virtualRow.size}px`,
+              // height: `${virtualRow.size}px`,
               transform: `translateY(${virtualRow.start}px)`,
             }}
             className={({ active }) =>
@@ -48,9 +49,9 @@ const VirualListOfMultiSelect = ({ items, getValue, isSelected }) => {
             value={items?.[virtualRow.index]}
           >
             {({ selected, active }) => (
-              <>
+              <div style={{ height: items?.[virtualRow.index] }}>
                 <span
-                  className={`block truncate ${
+                  className={`block truncate text-start ${
                     selected || isSelected(getValue(items?.[virtualRow.index]))
                       ? "font-medium selected-item"
                       : "font-normal"
@@ -68,7 +69,7 @@ const VirualListOfMultiSelect = ({ items, getValue, isSelected }) => {
                     <CheckIcon className="h-5 w-5" aria-hidden="true" />
                   </span>
                 ) : null}
-              </>
+              </div>
             )}
           </Combobox.Option>
         ))}

@@ -62,8 +62,9 @@ export const DegreeDropdown = () => {
     password: Yup.string().required("Required"),
     degree: Yup.array().of(Yup.string()),
   });
-  const onSubmit = () => {
+  const onSubmit = (values) => {
     alert("submitted");
+    console.log({ values });
   };
   const formik = useFormik({
     enableReinitialize: true,
@@ -98,7 +99,12 @@ export const DegreeDropdown = () => {
   }, []);
   return (
     <div>
-      <div className="d-flex justify-content-center p-3">
+      <div
+        className="d-flex justify-content-center p-3"
+        style={{
+          marginTop: "220px",
+        }}
+      >
         <form
           onSubmit={formik.handleSubmit}
           className="w-50 text-start border p-3"
@@ -153,6 +159,7 @@ export const DegreeDropdown = () => {
                     // InputControl: InputSearch,
                   }
                 }
+                isVirtualizationEnabled={false}
                 getValue={(o) => o.skill_name}
                 getLabel={(o) => o.skill_name}
                 creatable={(newSkill) => newSkill}

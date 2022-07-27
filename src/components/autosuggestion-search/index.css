@@ -193,3 +193,9 @@
 .selected-item {
   color: #9880ff;
 }
+.text-start {
+  text-align: start;
+}
+.reverse-position {
+  bottom: 100%;
+}
