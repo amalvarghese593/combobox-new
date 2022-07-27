@@ -72,7 +72,10 @@ export const DegreeDropdown = () => {
     validationSchema,
     onSubmit,
   });
-  const onHandle = (data) => formik.setFieldValue("degree", data);
+  const onHandle = (data) => {
+    console.log({ data });
+    formik.setFieldValue("degree", data);
+  };
   // useEffect(() => {
   //   const fetch = async () => {
   //     const res = await axios.get("https://jsonplaceholder.typicode.com/users");
@@ -99,12 +102,7 @@ export const DegreeDropdown = () => {
   }, []);
   return (
     <div>
-      <div
-        className="d-flex justify-content-center p-3"
-        style={{
-          marginTop: "220px",
-        }}
-      >
+      <div className="d-flex justify-content-center p-3">
         <form
           onSubmit={formik.handleSubmit}
           className="w-50 text-start border p-3"
@@ -159,7 +157,8 @@ export const DegreeDropdown = () => {
                     // InputControl: InputSearch,
                   }
                 }
-                isVirtualizationEnabled={false}
+                virtualized={false}
+                isSingleSelect={true}
                 getValue={(o) => o.skill_name}
                 getLabel={(o) => o.skill_name}
                 creatable={(newSkill) => newSkill}

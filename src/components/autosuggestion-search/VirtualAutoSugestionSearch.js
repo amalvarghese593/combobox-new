@@ -44,7 +44,8 @@ const useChangeDropdownPosition = (inputContainerRef, dropdownHeight = 200) => {
 };
 
 export const VirtualAutoSuggestionSearch = ({
-  isVirtualizationEnabled,
+  virtualized,
+  isSingleSelect,
   getLabel,
   getValue,
   transformResponse,
@@ -68,6 +69,7 @@ export const VirtualAutoSuggestionSearch = ({
   const timeout = useRef();
   const inputContainerRef = useRef();
   const { isReverse } = useChangeDropdownPosition(inputContainerRef);
+  const dropdownOpenButtonRef = useRef();
 
   const valueHandler = (e) => {
     clearTimeout(timeout.current);
@@ -141,32 +143,38 @@ export const VirtualAutoSuggestionSearch = ({
   );
 
   const onSelection = (items) => {
-    console.log({ items });
-    const itemsArray = items.map((item) => transformedValue(item));
-    console.log("onselection");
-    //separating comma separated items into individual items
-    const separatedItemsArray = [];
+    // console.log("onselection");
+    // console.log({ items });
+    const isItemsArray = Array.isArray(items);
+    // console.log({ isItemsArray });
+    if (isItemsArray) {
+      const itemsArray = items.map((item) => transformedValue(item));
+      //separating comma separated items into individual items
+      const separatedItemsArray = [];
 
-    const trueBlockFn = (value) => {
-      value.length && separatedItemsArray.push(value.replace(/\.$/, ""));
-    };
-    const falseBlockFn = (el) => separatedItemsArray.push(el);
+      const trueBlockFn = (value) => {
+        value.length && separatedItemsArray.push(value.replace(/\.$/, ""));
+      };
+      const falseBlockFn = (el) => separatedItemsArray.push(el);
 
-    itemsArray.forEach((el) => {
-      separateStringByComma(el, trueBlockFn, falseBlockFn);
-    });
-    //removing duplicates
-    const uniqueItemsArray = [...new Set(separatedItemsArray)];
+      itemsArray.forEach((el) => {
+        separateStringByComma(el, trueBlockFn, falseBlockFn);
+      });
+      //removing duplicates
+      const uniqueItemsArray = [...new Set(separatedItemsArray)];
 
-    //remove items if case matches
-    const caseSensitiveArray = uniqueItemsArray.filter(
-      (el, idx, array) =>
-        !array.some(
-          (item, index) =>
-            item.toLowerCase() === el.toLowerCase() && idx > index
-        )
-    );
-    setSelectedItems(caseSensitiveArray);
+      //remove items if case matches
+      const caseSensitiveArray = uniqueItemsArray.filter(
+        (el, idx, array) =>
+          !array.some(
+            (item, index) =>
+              item.toLowerCase() === el.toLowerCase() && idx > index
+          )
+      );
+      setSelectedItems(caseSensitiveArray);
+    } else {
+      setSelectedItems(transformedValue(items));
+    }
   };
 
   const removeItem = (item) => {
@@ -235,7 +243,11 @@ export const VirtualAutoSuggestionSearch = ({
   return (
     <div className="combo-wrapper">
       <div className="w-full">
-        <Combobox value={selectedItems} onChange={onSelection}>
+        <Combobox
+          value={selectedItems}
+          onChange={onSelection}
+          multiple={isSingleSelect ? false : true}
+        >
           {({ open, activeIndex, activeOption }) => {
             return (
               <>
@@ -254,6 +266,9 @@ export const VirtualAutoSuggestionSearch = ({
                         captureOnKeyDown(e, activeOption)
                       }
                       onKeyDown={addNewItemHandler}
+                      onClick={() => {
+                        if (!open) dropdownOpenButtonRef.current.click();
+                      }}
                       placeholder={inputPlaceholder}
                     >
                       {hasInputControl ? (
@@ -268,7 +283,10 @@ export const VirtualAutoSuggestionSearch = ({
                       </div>
                     )}
 
-                    <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2 bg-transparent">
+                    <Combobox.Button
+                      ref={dropdownOpenButtonRef}
+                      className="absolute inset-y-0 right-0 flex items-center pr-2 bg-transparent"
+                    >
                       {!isLoading &&
                       filteredData.length === 0 &&
                       query.length >= 2 ? (
@@ -321,7 +339,7 @@ export const VirtualAutoSuggestionSearch = ({
                         </div>
                       )}
                     {!isLoading &&
-                      (isVirtualizationEnabled ? (
+                      (virtualized ? (
                         <VirualListOfMultiSelect
                           items={filteredData}
                           getValue={getValue}
@@ -348,7 +366,7 @@ export const VirtualAutoSuggestionSearch = ({
                       ))}
                   </Combobox.Options>
                 </div>
-                {!!selectedItems.length && (
+                {!!selectedItems.length && !isSingleSelect && (
                   <ul className="flex flex-wrap ml-0 pl-0">
                     {selectedItems.map((el, idx) => (
                       <Fragment key={idx}>
