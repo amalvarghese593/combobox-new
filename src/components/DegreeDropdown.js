@@ -157,8 +157,8 @@ export const DegreeDropdown = () => {
                     // InputControl: InputSearch,
                   }
                 }
-                virtualized={false}
-                isSingleSelect={true}
+                virtualized={true}
+                isSingleSelect={false}
                 getValue={(o) => o.skill_name}
                 getLabel={(o) => o.skill_name}
                 creatable={(newSkill) => newSkill}

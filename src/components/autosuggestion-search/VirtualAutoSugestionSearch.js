@@ -135,9 +135,11 @@ export const VirtualAutoSuggestionSearch = ({
 
   const isSelected = useCallback(
     (currentItem) => {
-      return selectedItems.some(
-        (item) => transformedValue(item) === transformedValue(currentItem)
-      );
+      return !isSingleSelect
+        ? selectedItems.some(
+            (item) => transformedValue(item) === transformedValue(currentItem)
+          )
+        : null;
     },
     [selectedItems, transformedValue]
   );
@@ -203,18 +205,22 @@ export const VirtualAutoSuggestionSearch = ({
 
   const handleCreateNewOption = () => {
     setQuery("");
-    setSelectedItems((prev) => {
-      let arr = [...prev];
-      query.replace(/\s+|\?|\$/, "");
-      const trueBlockFn = (value) => {
-        if (!arr.includes(value) && value.length) arr.push(creatable(value));
-      };
-      const falseBlockFn = (str) => {
-        if (!arr.includes(query)) arr.push(creatable(query));
-      };
-      separateStringByComma(query, trueBlockFn, falseBlockFn);
-      return arr;
-    });
+    if (isSingleSelect) {
+      setSelectedItems(query);
+    } else {
+      setSelectedItems((prev) => {
+        let arr = [...prev];
+        query.replace(/\s+|\?|\$/, "");
+        const trueBlockFn = (value) => {
+          if (!arr.includes(value) && value.length) arr.push(creatable(value));
+        };
+        const falseBlockFn = (str) => {
+          if (!arr.includes(query)) arr.push(creatable(query));
+        };
+        separateStringByComma(query, trueBlockFn, falseBlockFn);
+        return arr;
+      });
+    }
   };
   const hasInputControl = useMemo(
     () => (components?.hasOwnProperty("InputControl") ? true : false),
